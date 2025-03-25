@@ -2,6 +2,9 @@ parameters:
   - name: openTofuDir
     type: string
 
+  - name: openTofuPlanFilepath
+    type: string
+
 stages:
   - template: /v1/templates/stages/opentofu/validate_and_plan.yml
     parameters:
