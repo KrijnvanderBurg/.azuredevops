@@ -23,10 +23,8 @@ steps:
   artifact: ${{ parameters.artifactName }}
 
 - script: |
-    tofu show $(Pipeline.Workspace)/${{ parameters.artifactName }}/${{ parameters.openTofuPlanFilepath }} \
-      -input=false
+    tofu show $(Pipeline.Workspace)/${{ parameters.artifactName }}/${{ parameters.openTofuPlanFilepath }}
   displayName: OpenTofu show
-  # workingDirectory: ${{ parameters.openTofuPlanFilepath }}
   env:
     TF_LOG: INFO
 
@@ -37,7 +35,7 @@ steps:
     scriptType: bash
     scriptLocation: inlineScript
     inlineScript: |
-      tofu apply $(Pipeline.Workspace)/${{ parameters.artifactName }}/${{ parameters.openTofuPlanFilepath }}
-    # workingDirectory: ${{ parameters.openTofuPlanFilepath }}
+      tofu apply $(Pipeline.Workspace)/${{ parameters.artifactName }}/${{ parameters.openTofuPlanFilepath }} \
+        -input=false
   env:
     TF_LOG: INFO
