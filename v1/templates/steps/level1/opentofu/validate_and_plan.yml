@@ -2,6 +2,9 @@ parameters:
   - name: openTofuDir
     type: string
 
+  - name: openTofuPlanFilepath
+    type: string
+
 steps:
   - template: /v1/templates/steps/level0/opentofu/opentofu_install.yml
 
@@ -16,3 +19,4 @@ steps:
   - template: /v1/templates/steps/level0/opentofu/opentofu_plan.yml
     parameters:
       openTofuDir: ${{ parameters.openTofuDir }}
+      openTofuPlanFilepath: ${{ parameters.openTofuPlanFilepath }}
