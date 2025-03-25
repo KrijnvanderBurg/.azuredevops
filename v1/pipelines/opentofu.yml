@@ -1,4 +1,4 @@
-parameters:
+# parameters:
 
 stages:
   - template: /.azuredevops/v1/templates/stages/opentofu/validate_and_plan.yml
