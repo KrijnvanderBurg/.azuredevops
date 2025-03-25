@@ -6,17 +6,17 @@ parameters:
     type: string
 
 steps:
-  - template: /v1/templates/steps/level0/opentofu/opentofu_install.yml
+  - template: /v1/templates/level0/opentofu/opentofu_install.yml
 
-  - template: /v1/templates/steps/level0/opentofu/opentofu_init.yml
+  - template: /v1/templates/level0/opentofu/opentofu_init.yml
     parameters:
       openTofuDir: ${{ parameters.openTofuDir }}
 
-  - template: /v1/templates/steps/level0/opentofu/opentofu_validate.yml
+  - template: /v1/templates/level0/opentofu/opentofu_validate.yml
     parameters:
       openTofuDir: ${{ parameters.openTofuDir }}
 
-  - template: /v1/templates/steps/level0/opentofu/opentofu_plan.yml
+  - template: /v1/templates/level0/opentofu/opentofu_plan.yml
     parameters:
       openTofuDir: ${{ parameters.openTofuDir }}
       openTofuPlanFilepath: ${{ parameters.openTofuPlanFilepath }}
