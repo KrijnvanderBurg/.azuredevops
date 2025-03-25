@@ -2,6 +2,9 @@ parameters:
   - name: openTofuDir
     type: string
 
+  - name: openTofuPlanFilepath
+    type: string
+
 jobs:
   - job: OpenTofuValidateAndPlan
     displayName: Validate and Plan
@@ -9,3 +12,5 @@ jobs:
       - template: /v1/templates/steps/level1/opentofu/validate_and_plan.yml
         parameters:
           openTofuDir: ${{ parameters.openTofuDir }}
+          openTofuPlanFilepath: ${{ parameters.openTofuPlanFilepath }}
+
