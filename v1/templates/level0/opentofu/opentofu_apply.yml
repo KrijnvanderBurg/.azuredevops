@@ -23,7 +23,8 @@ steps:
   artifact: ${{ parameters.artifactName }}
 
 - script: |
-    tofu show $(Pipeline.Workspace)/${{ parameters.artifactName }}/${{ parameters.openTofuPlanFilepath }}
+    tofu show $(Pipeline.Workspace)/${{ parameters.artifactName }}/${{ parameters.openTofuPlanFilepath }} \
+      -input=false
   displayName: OpenTofu show
   # workingDirectory: ${{ parameters.openTofuPlanFilepath }}
   env:
