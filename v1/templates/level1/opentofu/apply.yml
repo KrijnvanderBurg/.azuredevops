@@ -9,7 +9,7 @@ steps:
 
   - template: /v1/templates/level0/opentofu/opentofu_init.yml
     parameters:
-      openTofuDir: $(Pipeline.Workspace)/${{ parameters.artifactName }}/${{ parameters.openTofuPlanFilepath }}
+      openTofuDir: $(Pipeline.Workspace)/opentofu/${{ parameters.openTofuPlanFilepath }}
 
   - template: /v1/templates/level0/opentofu/opentofu_apply.yml
     parameters:
