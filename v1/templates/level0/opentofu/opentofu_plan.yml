@@ -29,6 +29,7 @@ steps:
     scriptType: bash
     scriptLocation: inlineScript
     inlineScript: |
+      echo "pwd: $(pwd)"
       tofu plan -out=${{ parameters.openTofuPlanFilepath }}
     workingDirectory: ${{ parameters.openTofuDir }}
   env:
