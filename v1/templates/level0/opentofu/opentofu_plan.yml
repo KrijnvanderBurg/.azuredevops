@@ -29,7 +29,6 @@ steps:
     scriptType: bash
     scriptLocation: inlineScript
     inlineScript: |
-      ls -la $(Build.Repository.LocalPath)
       tofu plan -out=${{ parameters.openTofuPlanFilepath }}
     workingDirectory: ${{ parameters.openTofuDir }}
   env:
