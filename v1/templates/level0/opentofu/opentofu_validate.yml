@@ -16,8 +16,7 @@ parameters:
 
 steps:
 - script: |
-    tofu validate \
-      -input=false
+    tofu validate
   displayName: OpenTofu validate
   workingDirectory: ${{ parameters.openTofuDir }}
   env:
