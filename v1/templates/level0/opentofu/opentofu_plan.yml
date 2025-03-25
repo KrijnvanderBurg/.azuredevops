@@ -29,11 +29,11 @@ steps:
     scriptType: bash
     scriptLocation: inlineScript
     inlineScript: |
-      tofu plan -out=${{ parameters.openTofuPlanFilepath }} \
+      tofu plan -out=$(Build.ArtifactStagingDirectory)/${{ parameters.openTofuPlanFilepath }} \
         -input=false
     workingDirectory: ${{ parameters.openTofuDir }}
   env:
     TF_LOG: INFO
 
-- publish: ${{ parameters.openTofuPlanFilepath }}
+- publish: $(Build.ArtifactStagingDirectory)/${{ parameters.openTofuPlanFilepath }}
   artifact: ${{ parameters.artifactName }}
