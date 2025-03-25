@@ -21,6 +21,10 @@ parameters:
   type: string
   default: opentofu
 
+- name: logLevel
+  type: string
+  default: INFO
+
 steps:
 - task: AzureCLI@2
   displayName: OpenTofu plan
@@ -33,7 +37,7 @@ steps:
         -input=false
     workingDirectory: ${{ parameters.openTofuDir }}
   env:
-    TF_LOG: INFO
+    TF_LOG: ${{ parameters.logLevel }}
 
 - publish: $(Build.ArtifactStagingDirectory)/${{ parameters.openTofuPlanFilepath }}
   artifact: ${{ parameters.artifactName }}
