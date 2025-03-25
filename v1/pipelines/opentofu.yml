@@ -6,7 +6,24 @@ parameters:
     type: string
 
 stages:
-  - template: /v1/templates/stages/opentofu/validate_and_plan.yml
-    parameters:
-      openTofuDir: ${{ parameters.openTofuDir }}
-      openTofuPlanFilepath: ${{ parameters.openTofuPlanFilepath }}
+  - stage: ValidateAndPlan
+    displayName: Validate and Plan
+    jobs:
+      - job: OpenTofuValidateAndPlan
+        displayName: Validate and Plan
+        steps:
+          - template: /v1/templates/level1/opentofu/validate_and_plan.yml
+            parameters:
+              openTofuDir: ${{ parameters.openTofuDir }}
+              openTofuPlanFilepath: ${{ parameters.openTofuPlanFilepath }}
+
+  - stage: ApplyStage
+    displayName: Apply 
+    dependsOn: ValidateAndPlan
+    jobs:
+      - job: OpenTofuApply
+        displayName: Apply
+        steps:
+          - template: /v1/templates/level1/opentofu/apply.yml
+            parameters:
+              openTofuPlanFilepath: ${{ parameters.openTofuPlanFilepath }}
