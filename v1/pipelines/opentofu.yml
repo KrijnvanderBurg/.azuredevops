@@ -1,6 +1,9 @@
-# parameters:
+parameters:
+  - name: openTofuDir
+    type: string
+    default: .
 
 stages:
   - template: /.azuredevops/v1/templates/stages/opentofu/validate_and_plan.yml
     parameters:
-      openTofuDir: $(Build.Repository.LocalPath)/dataplatform-tf/
+      openTofuDir: ${{ parameters.openTofuDir }}
