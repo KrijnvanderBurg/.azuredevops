@@ -6,3 +6,4 @@ stages:
   - template: /v1/templates/stages/opentofu/validate_and_plan.yml
     parameters:
       openTofuDir: ${{ parameters.openTofuDir }}
+      openTofuPlanFilepath: ${{ parameters.openTofuPlanFilepath }}

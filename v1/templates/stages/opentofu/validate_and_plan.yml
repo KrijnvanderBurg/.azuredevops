@@ -1,7 +1,9 @@
 parameters:
   - name: openTofuDir
     type: string
-    default: .
+
+  - name: openTofuPlanFilepath
+    type: string
 
 stages:
   - stage: ValidateAndPlanStage
@@ -10,3 +12,8 @@ stages:
       - template: /v1/templates/jobs/opentofu/validate_and_plan.yml
         parameters:
           openTofuDir: ${{ parameters.openTofuDir }}
+          openTofuPlanFilepath: ${{ parameters.openTofuPlanFilepath }}
+
+      - template: /v1/templates/jobs/opentofu/apply.yml
+        parameters:
+          openTofuPlanFilepath: ${{ parameters.openTofuPlanFilepath }}

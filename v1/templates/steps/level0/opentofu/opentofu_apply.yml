@@ -11,19 +11,23 @@ parameters:
   type: boolean
   default: false
 
+- name: artifactName
+  type: string
+  default: opentofu
+
 - name: openTofuPlanFilepath
   type: string
 
 steps:
 - download: current
-  artifact: lakehouse
+  artifact: ${{ parameters.artifactName }}
 
 - script: |
-    tofu show plan.out
+    tofu show $(Pipeline.Workspace)/${{ parameters.artifactName }}/${{ parameters.openTofuPlanFilepath }}
   displayName: OpenTofu show
-  workingDirectory: ${{ parameters.openTofuPlanFilepath }}
+  # workingDirectory: ${{ parameters.openTofuPlanFilepath }}
   env:
-    TF_LOG: "INFO"
+    TF_LOG: INFO
 
 - task: AzureCLI@2
   displayName: OpenTofu apply
@@ -32,7 +36,7 @@ steps:
     scriptType: bash
     scriptLocation: inlineScript
     inlineScript: |
-      tofu apply plan.out
-    workingDirectory: ${{ parameters.openTofuPlanFilepath }}
+      tofu apply $(Pipeline.Workspace)/${{ parameters.artifactName }}/${{ parameters.openTofuPlanFilepath }}
+    # workingDirectory: ${{ parameters.openTofuPlanFilepath }}
   env:
-    TF_LOG: "INFO"
+    TF_LOG: INFO

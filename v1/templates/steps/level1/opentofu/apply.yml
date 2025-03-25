@@ -1,0 +1,10 @@
+parameters:
+  - name: openTofuPlanFilepath
+    type: string
+
+steps:
+  - template: /v1/templates/steps/level0/opentofu/opentofu_install.yml
+
+  - template: /v1/templates/steps/level0/opentofu/opentofu_apply.yml
+    parameters:
+      openTofuPlanFilepath: ${{ parameters.openTofuPlanFilepath }}

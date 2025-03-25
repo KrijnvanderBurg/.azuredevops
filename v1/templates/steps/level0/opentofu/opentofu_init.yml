@@ -28,7 +28,7 @@ steps:
         -input=false
     workingDirectory: ${{ parameters.openTofuDir }}
   env:
-    TF_LOG: "INFO"
+    TF_LOG: INFO
 
 
 # steps:

@@ -14,6 +14,13 @@ parameters:
 - name: openTofuDir
   type: string
 
+- name: openTofuPlanFilepath
+  type: string
+
+- name: artifactName
+  type: string
+  default: opentofu
+
 steps:
 - task: AzureCLI@2
   displayName: OpenTofu plan
@@ -22,10 +29,10 @@ steps:
     scriptType: bash
     scriptLocation: inlineScript
     inlineScript: |
-      tofu plan -out=${{ parameters.openTofuDir }}/plan.out
+      tofu plan -out=${{ parameters.openTofuPlanFilepath }}
     workingDirectory: ${{ parameters.openTofuDir }}
   env:
-    TF_LOG: "INFO"
+    TF_LOG: INFO
 
-- publish: ${{ parameters.openTofuDir }}
-  artifact: lakehouse
+- publish: ${{ parameters.openTofuPlanFilepath }}
+  artifact: ${{ parameters.artifactName }}

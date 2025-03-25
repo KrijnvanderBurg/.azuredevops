@@ -1,10 +1,9 @@
 parameters:
   - name: openTofuDir
     type: string
-    default: .
 
 jobs:
-  - job: ValidateAndPlan
+  - job: OpenTofuValidateAndPlan
     displayName: Validate and Plan
     steps:
       - template: /v1/templates/steps/level1/opentofu/validate_and_plan.yml

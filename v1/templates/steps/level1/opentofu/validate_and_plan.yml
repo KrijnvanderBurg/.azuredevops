@@ -1,7 +1,6 @@
 parameters:
   - name: openTofuDir
     type: string
-    default: .
 
 steps:
   - template: /v1/templates/steps/level0/opentofu/opentofu_install.yml
