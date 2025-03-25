@@ -6,6 +6,9 @@ parameters:
     type: string
 
 steps:
+  - checkout: self
+    submodules: true
+
   - template: /v1/templates/level0/opentofu/opentofu_install.yml
 
   - template: /v1/templates/level0/opentofu/opentofu_init.yml
