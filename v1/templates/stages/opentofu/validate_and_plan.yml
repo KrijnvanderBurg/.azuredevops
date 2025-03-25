@@ -1,0 +1,12 @@
+parameters:
+  - name: openTofuDir
+    type: string
+    default: .
+
+stages:
+  - stage: ValidateAndPlanStage
+    displayName: Validate and Plan Stage
+    jobs:
+      - template: \.azuredevops\v1\templates\jobs\opentofu\validate_and_plan.yml
+        parameters:
+          openTofuDir: ${{ parameters.openTofuDir }}
