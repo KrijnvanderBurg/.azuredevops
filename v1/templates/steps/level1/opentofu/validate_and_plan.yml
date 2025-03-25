@@ -5,10 +5,10 @@ parameters:
 
 steps:
   - template: /v1/templates/steps/level0/opentofu/opentofu_install.yml
-    parameters:
 
   - template: /v1/templates/steps/level0/opentofu/opentofu_init.yml
     parameters:
+      openTofuDir: ${{ parameters.openTofuDir }}
 
   - template: /v1/templates/steps/level0/opentofu/opentofu_validate.yml
     parameters:
