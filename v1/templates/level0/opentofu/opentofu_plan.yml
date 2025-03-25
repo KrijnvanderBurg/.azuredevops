@@ -31,6 +31,11 @@ steps:
     inlineScript: |
       echo "pwd: $(pwd)"
       echo "ls: $(ls)"
+      echo "Build.ArtifactStagingDirectory: $BUILD_ARTIFACTSTAGINGDIRECTORY"
+      echo "Build.Repository.LocalPath: $BUILD_REPOSITORY_LOCALPATH"
+      echo "Build.StagingDirectory: $BUILD_STAGINGDIRECTORY"
+      echo "System.DefaultWorkingDirectory: $SYSTEM_DEFAULTWORKINGDIRECTORY"
+      echo "System.ArtifactsDirectory: $SYSTEM_ARTIFACTSDIRECTORY"
       tofu plan -out=${{ parameters.openTofuPlanFilepath }}
     workingDirectory: ${{ parameters.openTofuDir }}
   env:
