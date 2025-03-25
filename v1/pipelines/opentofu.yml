@@ -1,14 +1,6 @@
-trigger:
-  branches:
-    include:
-      - main
-  paths:
-    include:
-      - "**/*.tf"
-    exclude:
-      - README.md
+parameters:
 
 stages:
-  - template: \.azuredevops\v1\templates\stages\opentofu\validate_and_plan.yml
+  - template: /.azuredevops/v1/templates/stages/opentofu/validate_and_plan.yml
     parameters:
       openTofuDir: $(Build.Repository.LocalPath)/dataplatform-tf/

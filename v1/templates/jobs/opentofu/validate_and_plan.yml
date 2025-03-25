@@ -7,6 +7,6 @@ jobs:
   - job: ValidateAndPlan
     displayName: Validate and Plan
     steps:
-      - template: \.azuredevops\v1\templates\steps\level1\opentofu\validate_and_plan.yml
+      - template: /.azuredevops/v1/templates/steps/level1/opentofu/validate_and_plan.yml
         parameters:
           openTofuDir: ${{ parameters.openTofuDir }}
