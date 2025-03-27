@@ -1,16 +1,23 @@
 parameters:
+  - name: artifactName
+    type: string
+    default: opentofu
+
   - name: openTofuPlanFilepath
     type: string
 
 steps:
   - checkout: none
 
+  - download: current
+    artifact: ${{ parameters.artifactName }}
+
   - template: /v1/templates/level0/opentofu/opentofu_install.yml
 
   - template: /v1/templates/level0/opentofu/opentofu_init.yml
     parameters:
-      openTofuDir: $(Pipeline.Workspace)/opentofu/${{ parameters.openTofuPlanFilepath }}
+      openTofuDir: $(Pipeline.Workspace)/${{ parameters.artifactName }}/${{ parameters.openTofuPlanFilepath }}
 
   - template: /v1/templates/level0/opentofu/opentofu_apply.yml
     parameters:
-      openTofuPlanFilepath: ${{ parameters.openTofuPlanFilepath }}
+      openTofuPlanFilepath: $(Pipeline.Workspace)/${{ parameters.artifactName }}/${{ parameters.openTofuPlanFilepath }}

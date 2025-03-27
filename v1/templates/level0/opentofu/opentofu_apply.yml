@@ -3,18 +3,6 @@
 # - opentofu init
 
 parameters:
-- name: enabled
-  type: boolean
-  default: true
-
-- name: continueOnError
-  type: boolean
-  default: false
-
-- name: artifactName
-  type: string
-  default: opentofu
-
 - name: openTofuPlanFilepath
   type: string
 
@@ -23,11 +11,8 @@ parameters:
   default: WARN
 
 steps:
-- download: current
-  artifact: ${{ parameters.artifactName }}
-
 - script: |
-    tofu show $(Pipeline.Workspace)/${{ parameters.artifactName }}/${{ parameters.openTofuPlanFilepath }}
+    tofu show ${{ parameters.openTofuPlanFilepath }}
   displayName: OpenTofu show
   env:
     TF_LOG: ${{ parameters.logLevel }}
@@ -39,7 +24,7 @@ steps:
     scriptType: bash
     scriptLocation: inlineScript
     inlineScript: |
-      tofu apply $(Pipeline.Workspace)/${{ parameters.artifactName }}/${{ parameters.openTofuPlanFilepath }} \
+      tofu apply ${{ parameters.openTofuPlanFilepath }} \
         -input=false
   env:
     TF_LOG: ${{ parameters.logLevel }}

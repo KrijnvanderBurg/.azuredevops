@@ -3,14 +3,6 @@
 # - opentofu init
 
 parameters:
-- name: enabled
-  type: boolean
-  default: true
-
-- name: continueOnError
-  type: boolean
-  default: false
-
 - name: openTofuDir
   type: string
 
