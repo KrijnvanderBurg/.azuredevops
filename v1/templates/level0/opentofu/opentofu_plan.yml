@@ -15,7 +15,7 @@ parameters:
 
 - name: logLevel
   type: string
-  default: INFO
+  default: WARN
 
 steps:
 - task: AzureCLI@2
