@@ -1,30 +1,46 @@
+# Level 1 template for Python code linting
+# Combines multiple Level 0 linting templates (ruff, pylint, flake8)
+
 parameters:
-- name: enabled
-  type: boolean
-  default: true
-
-- name: continueOnError
-  type: boolean
-  default: false
-
-- name: targetPath
-  type: string
+  - name: enabled
+    type: boolean
+    default: true
+    
+  - name: continueOnError
+    type: boolean
+    default: false
+    
+  - name: pythonSrcDirectory
+    type: string
+    default: $(Build.SourcesDirectory)
+    
+  - name: pythonSourceDirectories
+    type: string
+    default: "src tests"
 
 steps:
-  - template: /.azuredevops/v1/templates/steps/level0/python/ruff_linter.yml
+  - template: ../../level0/python/ruff_linter.yml
     parameters:
-      targetPath: ${{ parameters.targetPath }}
+      pythonSrcDirectory: ${{ parameters.pythonSrcDirectory }}
+      pythonSourceDirectories: ${{ parameters.pythonSourceDirectories }}
       continueOnError: ${{ parameters.continueOnError }}
       enabled: ${{ parameters.enabled }}
 
-  - template: /.azuredevops/v1/templates/steps/level0/python/pylint_linter.yml
+  - template: ../../level0/python/pylint_linter.yml
     parameters:
-      targetPath: ${{ parameters.targetPath }}
+      pythonSrcDirectory: ${{ parameters.pythonSrcDirectory }}
+      pythonSourceDirectories: ${{ parameters.pythonSourceDirectories }}
       continueOnError: ${{ parameters.continueOnError }}
       enabled: ${{ parameters.enabled }}
 
-  - template: /.azuredevops/v1/templates/steps/level0/python/flake8_linter.yml
+  - template: ../../level0/python/flake8_linter.yml
     parameters:
-      targetPath: ${{ parameters.targetPath }}
+      pythonSrcDirectory: ${{ parameters.pythonSrcDirectory }}
+      pythonSourceDirectories: ${{ parameters.pythonSourceDirectories }}
       continueOnError: ${{ parameters.continueOnError }}
       enabled: ${{ parameters.enabled }}
+      
+  - script: |
+      echo "##[section]Code linting complete"
+    displayName: 'Code linting summary'
+    condition: and(succeeded(), eq('${{ parameters.enabled }}', 'true'))
