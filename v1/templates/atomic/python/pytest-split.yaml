@@ -51,15 +51,15 @@ jobs:
           pip install pytest pytest-cov pytest-azurepipelines pytest-xdist pytest-split
 
           pytest ${{ parameters.testsPaths }} \
-          -c ${{ parameters.pytestConfigFilepath }} \
-          --cov=${{ parameters.coveragePath }} \
-          --cov-report=xml \
-          --cov-config=${{ parameters.coverageConfigFilepath }} \
-          --doctest-modules \
-          --junit-xml=$(Build.StagingDirectory)/JUNIT-TEST.xml \
-          --verbose \
-          --splits $(System.TotalJobsInPhase) \
-          --group $(System.JobPositionInPhase)
+            -c ${{ parameters.pytestConfigFilepath }} \
+            --cov=${{ parameters.coveragePath }} \
+            --cov-report=xml \
+            --cov-config=${{ parameters.coverageConfigFilepath }} \
+            --doctest-modules \
+            --junit-xml=$(Build.StagingDirectory)/JUNIT-TEST.xml \
+            --verbose \
+            --splits $(System.TotalJobsInPhase) \
+            --group $(System.JobPositionInPhase)
         displayName: Pytest (testing)
         env:
           COVERAGE_FILE: $(Build.StagingDirectory)/coverage/$(System.JobPositionInPhase).coverage

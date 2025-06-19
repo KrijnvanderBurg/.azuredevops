@@ -14,6 +14,6 @@ parameters:
 steps:
 - script: |
     sh $(Build.Repository.LocalPath)/.devcontainer/.dotfiles/scripts/bandit.sh \
-    --target_path=${{ parameters.targetPath }} \
-    --config_filepath=${{ parameters.configFilepath }} 
+      ${{ parameters.targetPath }} \
+      $${{ parameters.configFilepath }} 
   displayName: Bandit (scanner)

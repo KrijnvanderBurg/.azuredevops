@@ -32,12 +32,12 @@ steps:
   # ossaudit doesnt support pyproject.toml, therefore exporting all dependencies to requirements.txt
   - script: |
       sh $(Build.Repository.LocalPath)/.devcontainer/.dotfiles/scripts/poetry_to_requirements.sh \
-        --pyproject_filepath=${{ parameters.pythonPyprojectFilepath }} \
-        --requirements_filepath=$(Agent.TempDirectory)/requirements.txt
+        ${{ parameters.pythonPyprojectFilepath }} \
+        $(Agent.TempDirectory)/requirements.txt
       
       sh $(Build.Repository.LocalPath)/.devcontainer/.dotfiles/scripts/ossaudit.sh \
-        --requirements_filepath=$(Agent.TempDirectory)/requirements.txt \
-        --config_filepath=${{ parameters.configFilepath }}
+        $(Agent.TempDirectory)/requirements.txt \
+        ${{ parameters.configFilepath }}
     displayName: Ossaudit (pyproject.toml scanner)
 
 - ${{ if ne(parameters.pythonRequirementsFilepath, '') }}:
@@ -45,6 +45,6 @@ steps:
       pip install ossaudit --quiet
 
       sh $(Build.Repository.LocalPath)/.devcontainer/.dotfiles/scripts/ossaudit.sh \
-        --requirements_filepath=${{ parameters.pythonRequirementsFilepath }} \
-        --config_filepath=${{ parameters.configFilepath }}
+        ${{ parameters.pythonRequirementsFilepath }} \
+        ${{ parameters.configFilepath }}
     displayName: Ossaudit (requirements scanner)

@@ -17,6 +17,6 @@ parameters:
 steps:
 - script: |
     sh $(Build.Repository.LocalPath)/.devcontainer/.dotfiles/scripts/trufflehog.sh \
-    --target_path=file://${{ parameters.targetPath }} \
-    --config_filepath=${{ parameters.configFilepath }} 
+      file://${{ parameters.targetPath }} \
+      ${{ parameters.configFilepath }} 
   displayName: Trufflehog (secret-scanner)

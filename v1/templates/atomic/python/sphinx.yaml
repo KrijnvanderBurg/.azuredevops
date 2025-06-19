@@ -10,7 +10,7 @@ parameters:
 steps:
 - script: |
     sh $(Build.Repository.LocalPath)/.devcontainer/.dotfiles/scripts/sphinx.sh \
-      --docs_dirpath=${{ parameters.pythonProjectDocsDirectory }} 
+      ${{ parameters.pythonProjectDocsDirectory }} 
   displayName: Sphinx (docs)
 
 - publish: ${{ parameters.pythonProjectDocsBuildHtmlDirectory }}

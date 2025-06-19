@@ -18,7 +18,7 @@ steps:
   inputs:
     scanlocation: ${{ parameters.targetPath }}
     configtype: custom
-    configfile: ${{ parameters.configFilepath }}
+    configfile: $${{ parameters.configFilepath }}
     scanmode: all
     reportformat: sarif
     verbose: true

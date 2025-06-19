@@ -7,7 +7,7 @@ parameters:
 steps:
 - script: | 
     sh $(Build.Repository.LocalPath)/.devcontainer/.dotfiles/scripts/graudit.sh \
-    --target_path=${{ parameters.targetPath }} \
+      ${{ parameters.targetPath }} \
   displayName: Graudit (scanner)
   env:
     GRDIR: $(Agent.ToolsDirectory)/graudit/signatures

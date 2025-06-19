@@ -17,6 +17,6 @@ steps:
       python -m build --version
 
       python -m build \
-      --wheel ${{ parameters.pythonProjectDirectory }} \
-      --outdir ${{ parameters.outputPath }}
+        --wheel ${{ parameters.pythonProjectDirectory }} \
+        --outdir ${{ parameters.outputPath }}
     displayName: Build Python wheel

@@ -67,7 +67,7 @@ steps:
   inputs:
     projectName: $(Build.Repository.Name)
     scanPath: ${{ parameters.pythonDependencyFilepath }}
-    suppressionPath: ${{ parameters.configFilepath }}
+    suppressionPath: $${{ parameters.configFilepath }}
     failOnCVSS: ${{ parameters.failOnCVSS }}
     format: JUNIT
     enableExperimental: true

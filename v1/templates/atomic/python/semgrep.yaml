@@ -16,9 +16,9 @@ steps:
 # when using -o to output to file, then no details are shown in the console
 - script: |
     sh $(Build.Repository.LocalPath)/.devcontainer/.dotfiles/scripts/semgrep.sh \
-    --target_path=${{ parameters.targetPath }} \
-    --config_filepath=${{ parameters.configFilepath }} \
-    --output_filepath=$(Common.TestResultsDirectory)/semgrep-junit.xml
+      ${{ parameters.targetPath }} \
+      ${{ parameters.configFilepath }} \
+      $(Common.TestResultsDirectory)/semgrep-junit.xml
   displayName: 'Semgrep [Limited] (scanner)' # Limited because Semgrep is a paid tool with free version, paid version checks against more vulnerabilities.
   env:
     SEMGREP_JOB_URL: $(System.CollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)

@@ -13,7 +13,7 @@ parameters:
 
 steps:
 - script: |
-   sh $(Build.Repository.LocalPath)/.devcontainer/.dotfiles/scripts/black.sh \
-    --target_path=${{ parameters.targetPath }} \
-    --config_filepath=${{ parameters.configFilepath }} 
+    sh $(Build.Repository.LocalPath)/.devcontainer/.dotfiles/scripts/black.sh \
+      ${{ parameters.targetPath }} \
+      ${{ parameters.configFilepath }} 
   displayName: Black (formatter)
