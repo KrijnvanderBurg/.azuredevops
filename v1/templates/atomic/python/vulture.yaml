@@ -1,0 +1,19 @@
+# https://github.com/jendrikseipp/vulture
+
+# Requirements:
+# - Python version/architecture is set in pipeline
+
+parameters:
+- name: targetPath
+  type: string
+
+- name: configFilepath
+  type: string
+  default: $(Build.Repository.LocalPath)/.devcontainer/.dotfiles/vulture.toml
+
+steps:
+- script: |
+    sh $(Build.Repository.LocalPath)/.devcontainer/.dotfiles/scripts/vulture.sh \
+    --target_path=${{ parameters.targetPath }} \
+    --config_filepath=${{ parameters.configFilepath }} 
+  displayName: Vulture (scanner)

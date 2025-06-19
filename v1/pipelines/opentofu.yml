@@ -12,7 +12,7 @@ stages:
       - job: OpenTofuValidateAndPlan
         displayName: Validate and Plan
         steps:
-          - template: /v1/templates/level1/opentofu/validate_and_plan.yml
+          - template: /v1/templates/composite/opentofu/validate_and_plan.yaml
             parameters:
               openTofuDir: ${{ parameters.openTofuDir }}
               openTofuPlanFilepath: ${{ parameters.openTofuPlanFilepath }}
@@ -24,6 +24,6 @@ stages:
       - job: OpenTofuApply
         displayName: Apply
         steps:
-          - template: /v1/templates/level1/opentofu/apply.yml
+          - template: /v1/templates/composite/opentofu/apply.yaml
             parameters:
               openTofuPlanFilepath: ${{ parameters.openTofuPlanFilepath }}

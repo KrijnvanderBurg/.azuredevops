@@ -1,0 +1,42 @@
+# https://docs.pytest.org
+
+# Requirements:
+# - Python version/architecture is set in pipeline
+
+parameters:
+- name: testsPaths
+  type: string
+
+- name: coveragePath
+  type: string
+
+- name: pytestConfigFilepath
+  type: string
+  default: $(Build.Repository.LocalPath)/.devcontainer/.dotfiles/pytest.ini
+
+- name: coverageConfigFilepath
+  type: string
+  default: $(Build.Repository.LocalPath)/.devcontainer/.dotfiles/.coveragerc
+
+steps:
+- script: |
+    pip install pytest-azurepipelines --quiet
+
+    sh $(Build.Repository.LocalPath)/.devcontainer/.dotfiles/scripts/pytest_and_coverage.sh \
+    --tests_path=${{ parameters.testsPaths }} \
+    --coverage_path=$${{ parameters.coveragePath }} \
+    --config_filepath_pytest=${{ parameters.pytestConfigFilepath }} \
+    --config_filepath_coverage=${{ parameters.coverageConfigFilepath }} \
+    --output_coverage_filepath=$(Build.StagingDirectory)/coverage.xml \
+    --output_junit_filepath=$(Build.StagingDirectory)/JUNIT-TEST.xml
+  displayName: Pytest (testing)
+
+# Parse code coverage in readable format
+- task: PublishCodeCoverageResults@2
+  displayName: Code overage publish results
+  inputs:
+    codeCoverageTool: Cobertura
+    summaryFileLocation: "**/coverage.xml"
+    searchFolder: $(Common.TestResultsDirectory)
+    pathToSources: ${{ parameters.coveragePath }}
+    failIfCoverageEmpty: true

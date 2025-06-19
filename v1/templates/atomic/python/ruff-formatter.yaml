@@ -1,0 +1,20 @@
+# https://github.com/astral-sh/ruff
+# https://docs.astral.sh/ruff/
+
+# Requirements:
+# - Python version/architecture is set in pipeline
+
+parameters:
+- name: targetPath
+  type: string
+
+- name: configFilepath
+  type: string
+  default: $(Build.Repository.LocalPath)/.devcontainer/.dotfiles/ruff.toml
+
+steps:
+- script: |
+    sh $(Build.Repository.LocalPath)/.devcontainer/.dotfiles/scripts/ruff_formatter.sh \
+    --target_path=${{ parameters.targetPath }} \
+    --config_filepath=${{ parameters.configFilepath }} 
+  displayName: Ruff (formatter)

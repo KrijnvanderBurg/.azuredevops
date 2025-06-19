@@ -1,0 +1,50 @@
+# https://github.com/illikainen/ossaudit
+
+
+# BUG: --CONFIG FLAG DOESNT SEEM TO WORK, THUS NO CONFIG CAN BE SUPPLIED.
+
+# Requirements:
+# - Python version/architecture is set in pipeline
+
+# Issues:
+# - Supports the following dependency manager files, (note: not pyproject.toml)
+#   PIP requirement files
+#   Pipfile
+#   Pipfile.lock
+#   tox.ini
+#   conda.yaml
+
+parameters:
+- name: pythonRequirementsFilepath
+  type: string
+  default: ''
+
+- name: pythonPyprojectFilepath
+  type: string
+  default: ''
+
+- name: configFilepath
+  type: string
+  default: $(Build.Repository.LocalPath)/.devcontainer/.dotfiles/ossaudit.yaml
+
+steps:
+- ${{ if ne(parameters.pythonPyprojectFilepath, '') }}:
+  # ossaudit doesnt support pyproject.toml, therefore exporting all dependencies to requirements.txt
+  - script: |
+      sh $(Build.Repository.LocalPath)/.devcontainer/.dotfiles/scripts/poetry_to_requirements.sh \
+        --pyproject_filepath=${{ parameters.pythonPyprojectFilepath }} \
+        --requirements_filepath=$(Agent.TempDirectory)/requirements.txt
+      
+      sh $(Build.Repository.LocalPath)/.devcontainer/.dotfiles/scripts/ossaudit.sh \
+        --requirements_filepath=$(Agent.TempDirectory)/requirements.txt \
+        --config_filepath=${{ parameters.configFilepath }}
+    displayName: Ossaudit (pyproject.toml scanner)
+
+- ${{ if ne(parameters.pythonRequirementsFilepath, '') }}:
+  - script: |
+      pip install ossaudit --quiet
+
+      sh $(Build.Repository.LocalPath)/.devcontainer/.dotfiles/scripts/ossaudit.sh \
+        --requirements_filepath=${{ parameters.pythonRequirementsFilepath }} \
+        --config_filepath=${{ parameters.configFilepath }}
+    displayName: Ossaudit (requirements scanner)

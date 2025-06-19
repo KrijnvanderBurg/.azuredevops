@@ -24,19 +24,19 @@ This repository contains reusable Azure DevOps pipeline templates for the Flint 
 │   ├── pools/                    # Agent pool configurations
 │   ├── scripts/                  # Helper scripts used by pipelines
 │   ├── templates/                # Reusable pipeline templates
-│   │   ├── level0/               # Atomic templates (single-purpose)
+│   │   ├── atomic/               # Atomic templates (single-purpose)
 │   │   │   ├── azuredevops/      # Azure DevOps specific templates
 │   │   │   ├── git/              # Git operation templates
 │   │   │   ├── github/           # GitHub integration templates
 │   │   │   ├── opentofu/         # OpenTofu (Terraform) templates
 │   │   │   └── python/           # Python tooling templates
-│   │   └── level1/               # Composite templates combining level0 templates
+│   │   └── composite/               # Composite templates combining atomic templates
 │   │       ├── opentofu/         # Composite OpenTofu templates
 │   │       └── python/           # Composite Python templates
 │   └── variables/                # Pipeline variables and variable groups
 │       ├── environments/         # Environment-specific variables
 │       ├── groups/               # Variable groups
-│       └── shared.yml            # Variables shared across pipelines
+│       └── shared.yaml            # Variables shared across pipelines
 └── v2/                           # Next generation templates (in development)
 ```
 
@@ -54,14 +54,14 @@ git submodule add https://github.com/your-org/dp-azuredevops.git .azuredevops
 
 #### 2. Create a Basic Pipeline File
 
-Create an `azure-pipelines.yml` file in your project root with the following contents:
+Create an `azure-pipelines.yaml` file in your project root with the following contents:
 
 ```yaml
 trigger:
   - main
 
 extends:
-  template: .azuredevops/v1/pipelines/python.yml
+  template: .azuredevops/v1/pipelines/python.yaml
   parameters:
     projectName: 'your-project-name'
     pythonVersion: '3.11'
@@ -76,7 +76,7 @@ trigger:
   - main
 
 extends:
-  template: .azuredevops/v1/pipelines/python.yml
+  template: .azuredevops/v1/pipelines/python.yaml
   parameters:
     projectName: 'flint'
     pythonVersion: '3.11'
@@ -94,7 +94,7 @@ Level 0 templates are atomic, single-purpose templates that perform one specific
 Example: Installing dependencies with Poetry
 
 ```yaml
-- template: .azuredevops/v1/templates/level0/python/poetry_install.yml
+- template: .azuredevops/v1/templates/atomic/python/poetry_install.yaml
   parameters:
     pythonSrcDirectory: $(Build.SourcesDirectory)
     pythonPyprojectFilepath: $(Build.SourcesDirectory)/pyproject.toml
@@ -107,7 +107,7 @@ Level 1 templates combine multiple Level 0 templates to perform a composite oper
 Example: Running all code formatters
 
 ```yaml
-- template: .azuredevops/v1/templates/level1/python/formatter.yml
+- template: .azuredevops/v1/templates/composite/python/formatter.yaml
   parameters:
     pythonSrcDirectory: $(Build.SourcesDirectory)
     pythonSourceDirectories: 'src tests'
@@ -120,7 +120,7 @@ Example: Running all code formatters
 **Basic Python Build Pipeline:**
 
 ```yaml
-# azure-pipelines.yml
+# azure-pipelines.yaml
 trigger:
   - main
 
@@ -128,7 +128,7 @@ pool:
   vmImage: 'ubuntu-latest'
 
 extends:
-  template: .azuredevops/v1/pipelines/python.yml
+  template: .azuredevops/v1/pipelines/python.yaml
   parameters:
     projectName: 'flint'
     pythonVersion: '3.11'
@@ -155,12 +155,12 @@ stages:
         versionSpec: '3.11'
         addToPath: true
     
-    - template: .azuredevops/v1/templates/level0/python/poetry_install.yml
+    - template: .azuredevops/v1/templates/atomic/python/poetry_install.yaml
       parameters:
         pythonSrcDirectory: $(Build.SourcesDirectory)
         pythonPyprojectFilepath: $(Build.SourcesDirectory)/pyproject.toml
     
-    - template: .azuredevops/v1/templates/level1/python/formatter.yml
+    - template: .azuredevops/v1/templates/composite/python/formatter.yaml
       parameters:
         pythonSrcDirectory: $(Build.SourcesDirectory)
         pythonSourceDirectories: 'src tests'
@@ -182,34 +182,34 @@ stages:
 
 | Template | Description | Required Parameters | Optional Parameters |
 |----------|-------------|---------------------|---------------------|
-| `poetry_install.yml` | Installs Python dependencies using Poetry | `pythonSrcDirectory`, `pythonPyprojectFilepath` | `poetryHome`, `poetryCacheDirectory` |
-| `pytest_test.yml` | Runs pytest tests with coverage | `pythonTestsDirectory` | `publishCoverage`, `testResultsFormat` |
-| `black_formatter.yml` | Runs Black code formatter | `pythonSourceDirectories` | `continueOnError` |
-| `ruff_formatter.yml` | Runs Ruff code formatter | `pythonSourceDirectories` | `continueOnError` |
-| `isort_formatter.yml` | Runs isort import sorter | `pythonSourceDirectories` | `continueOnError` |
-| `ruff_linter.yml` | Runs Ruff linter | `pythonSourceDirectories` | `continueOnError` |
-| `pylint_linter.yml` | Runs Pylint linter | `pythonSourceDirectories` | `continueOnError` |
-| `flake8_linter.yml` | Runs Flake8 linter | `pythonSourceDirectories` | `continueOnError` |
-| `mypy_typechecker.yml` | Runs MyPy type checker | `pythonSourceDirectories` | `continueOnError` |
-| `pyre_typechecker.yml` | Runs Pyre type checker | `pythonSourceDirectories` | `continueOnError` |
-| `pyright_typechecker.yml` | Runs Pyright type checker | `pythonSourceDirectories` | `continueOnError` |
-| `bandit_scanner.yml` | Runs Bandit security scanner | `pythonSourceDirectories` | `continueOnError` |
-| `semgrep_vuln_scanner.yml` | Runs Semgrep vulnerability scanner | `pythonSourceDirectories` | `continueOnError` |
-| `trufflehog_secret_scanner.yml` | Runs TruffleHog secret scanner | `pythonSourceDirectories` | `continueOnError` |
-| `vulture_deadcode_scanner.yml` | Runs Vulture dead code scanner | `pythonSourceDirectories` | `continueOnError` |
-| `ossaudit_scanner.yml` | Runs OSSAudit dependency scanner | `pythonSrcDirectory` | `continueOnError` |
-| `build_wheel_bdist.yml` | Builds Python wheel | `pythonSrcDirectory`, `projectName` | `publishArtifacts` |
-| `twine_upload.yml` | Uploads package to PyPI | `pythonSrcDirectory` | `repository` |
+| `poetry_install.yaml` | Installs Python dependencies using Poetry | `pythonSrcDirectory`, `pythonPyprojectFilepath` | `poetryHome`, `poetryCacheDirectory` |
+| `pytest_test.yaml` | Runs pytest tests with coverage | `pythonTestsDirectory` | `publishCoverage`, `testResultsFormat` |
+| `black_formatter.yaml` | Runs Black code formatter | `pythonSourceDirectories` | `continueOnError` |
+| `ruff_formatter.yaml` | Runs Ruff code formatter | `pythonSourceDirectories` | `continueOnError` |
+| `isort_formatter.yaml` | Runs isort import sorter | `pythonSourceDirectories` | `continueOnError` |
+| `ruff_linter.yaml` | Runs Ruff linter | `pythonSourceDirectories` | `continueOnError` |
+| `pylint_linter.yaml` | Runs Pylint linter | `pythonSourceDirectories` | `continueOnError` |
+| `flake8_linter.yaml` | Runs Flake8 linter | `pythonSourceDirectories` | `continueOnError` |
+| `mypy_typechecker.yaml` | Runs MyPy type checker | `pythonSourceDirectories` | `continueOnError` |
+| `pyre_typechecker.yaml` | Runs Pyre type checker | `pythonSourceDirectories` | `continueOnError` |
+| `pyright_typechecker.yaml` | Runs Pyright type checker | `pythonSourceDirectories` | `continueOnError` |
+| `bandit_scanner.yaml` | Runs Bandit security scanner | `pythonSourceDirectories` | `continueOnError` |
+| `semgrep_vuln_scanner.yaml` | Runs Semgrep vulnerability scanner | `pythonSourceDirectories` | `continueOnError` |
+| `trufflehog_secret_scanner.yaml` | Runs TruffleHog secret scanner | `pythonSourceDirectories` | `continueOnError` |
+| `vulture_deadcode_scanner.yaml` | Runs Vulture dead code scanner | `pythonSourceDirectories` | `continueOnError` |
+| `ossaudit_scanner.yaml` | Runs OSSAudit dependency scanner | `pythonSrcDirectory` | `continueOnError` |
+| `build_wheel_bdist.yaml` | Builds Python wheel | `pythonSrcDirectory`, `projectName` | `publishArtifacts` |
+| `twine_upload.yaml` | Uploads package to PyPI | `pythonSrcDirectory` | `repository` |
 
 ### Level 1 Python Templates
 
 | Template | Description | Included Level 0 Templates | Required Parameters |
 |----------|-------------|---------------------------|---------------------|
-| `formatter.yml` | Runs all code formatters | `black_formatter.yml`, `isort_formatter.yml`, `ruff_formatter.yml` | `pythonSrcDirectory`, `pythonSourceDirectories` |
-| `linter.yml` | Runs all code linters | `ruff_linter.yml`, `pylint_linter.yml`, `flake8_linter.yml` | `pythonSrcDirectory`, `pythonSourceDirectories` |
-| `typechecking.yml` | Runs all type checkers | `mypy_typechecker.yml`, `pyre_typechecker.yml`, `pyright_typechecker.yml` | `pythonSrcDirectory`, `pythonSourceDirectories` |
-| `scanning_1st_vulnerabilities.yml` | Scans first-party code for vulnerabilities | `bandit_scanner.yml`, `semgrep_vuln_scanner.yml`, `trufflehog_secret_scanner.yml`, `vulture_deadcode_scanner.yml`, `devskim_scanner.yml`, `graudit_scanner.yml` | `pythonSrcDirectory` |
-| `scanning_3rd_vulnerabilities.yml` | Scans third-party dependencies for vulnerabilities | `ossaudit_scanner.yml`, `owasp_scanner.yml` | `pythonSrcDirectory` |
+| `formatter.yaml` | Runs all code formatters | `black_formatter.yaml`, `isort_formatter.yaml`, `ruff_formatter.yaml` | `pythonSrcDirectory`, `pythonSourceDirectories` |
+| `linter.yaml` | Runs all code linters | `ruff_linter.yaml`, `pylint_linter.yaml`, `flake8_linter.yaml` | `pythonSrcDirectory`, `pythonSourceDirectories` |
+| `typechecking.yaml` | Runs all type checkers | `mypy_typechecker.yaml`, `pyre_typechecker.yaml`, `pyright_typechecker.yaml` | `pythonSrcDirectory`, `pythonSourceDirectories` |
+| `scanning_1st_vulnerabilities.yaml` | Scans first-party code for vulnerabilities | `bandit_scanner.yaml`, `semgrep_vuln_scanner.yaml`, `trufflehog_secret_scanner.yaml`, `vulture_deadcode_scanner.yaml`, `devskim_scanner.yaml`, `graudit_scanner.yaml` | `pythonSrcDirectory` |
+| `scanning_3rd_vulnerabilities.yaml` | Scans third-party dependencies for vulnerabilities | `ossaudit_scanner.yaml`, `owasp_scanner.yaml` | `pythonSrcDirectory` |
 
 ## Best Practices
 
@@ -244,7 +244,7 @@ stages:
 - Pin versions for production dependencies
 
 ```yaml
-- template: .azuredevops/v1/templates/level0/python/poetry_install.yml
+- template: .azuredevops/v1/templates/atomic/python/poetry_install.yaml
   parameters:
     pythonSrcDirectory: $(Build.SourcesDirectory)
     pythonPyprojectFilepath: $(Build.SourcesDirectory)/pyproject.toml
@@ -257,12 +257,12 @@ stages:
 - Keep formatting and linting steps separate from testing
 
 ```yaml
-- template: .azuredevops/v1/templates/level1/python/formatter.yml
+- template: .azuredevops/v1/templates/composite/python/formatter.yaml
   parameters:
     pythonSrcDirectory: $(Build.SourcesDirectory)
     pythonSourceDirectories: 'src tests'
 
-- template: .azuredevops/v1/templates/level1/python/linter.yml
+- template: .azuredevops/v1/templates/composite/python/linter.yaml
   parameters:
     pythonSrcDirectory: $(Build.SourcesDirectory)
     pythonSourceDirectories: 'src tests'
@@ -275,7 +275,7 @@ stages:
 - Use the appropriate test runner for your project
 
 ```yaml
-- template: .azuredevops/v1/templates/level0/python/pytest_test.yml
+- template: .azuredevops/v1/templates/atomic/python/pytest_test.yaml
   parameters:
     pythonTestsDirectory: $(Build.SourcesDirectory)/tests
     publishCoverage: true
@@ -289,13 +289,13 @@ stages:
 - Review security findings as part of your regular process
 
 ```yaml
-- template: .azuredevops/v1/templates/level1/python/scanning_1st_vulnerabilities.yml
+- template: .azuredevops/v1/templates/composite/python/scanning_1st_vulnerabilities.yaml
   parameters:
     pythonSrcDirectory: $(Build.SourcesDirectory)
     continueOnError: true
     enabled: true
 
-- template: .azuredevops/v1/templates/level1/python/scanning_3rd_vulnerabilities.yml
+- template: .azuredevops/v1/templates/composite/python/scanning_3rd_vulnerabilities.yaml
   parameters:
     pythonSrcDirectory: $(Build.SourcesDirectory)
     continueOnError: true
@@ -367,7 +367,7 @@ variables:
 The v1 templates provide a comprehensive set of pipeline templates for building, testing, and analyzing Python projects.
 
 Key features:
-- Two-level template hierarchy (level0/level1)
+- Two-level template hierarchy (atomic/composite)
 - Support for Poetry dependency management
 - Comprehensive test, lint, and security scanning
 - Integration with Azure DevOps pipelines
@@ -391,9 +391,9 @@ Planned features:
 All v1 templates are stable and can be used in production pipelines. To use v1 templates:
 
 ```yaml
-# azure-pipelines.yml
+# azure-pipelines.yaml
 extends:
-  template: .azuredevops/v1/pipelines/python.yml
+  template: .azuredevops/v1/pipelines/python.yaml
   parameters:
     projectName: 'your-project-name'
 ```

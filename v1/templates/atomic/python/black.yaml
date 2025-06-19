@@ -1,0 +1,19 @@
+# https://github.com/psf/black
+
+# Requirements:
+# - Python version/architecture is set in pipeline
+
+parameters:
+- name: targetPath
+  type: string
+
+- name: configFilepath
+  type: string
+  default: $(Build.Repository.LocalPath)/.devcontainer/.dotfiles/.black
+
+steps:
+- script: |
+   sh $(Build.Repository.LocalPath)/.devcontainer/.dotfiles/scripts/black.sh \
+    --target_path=${{ parameters.targetPath }} \
+    --config_filepath=${{ parameters.configFilepath }} 
+  displayName: Black (formatter)

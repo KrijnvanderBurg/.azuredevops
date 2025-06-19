@@ -1,167 +1,99 @@
-# Pipeline template for Python projects
-# This pipeline includes steps for linting, testing, and building Python projects
-
 parameters:
   - name: projectName
     type: string
-    default: 'flint'
     
   - name: pythonVersion
     type: string
-    default: '3.11'
     
   - name: pythonSrcDirectory
     type: string
-    default: '$(Build.SourcesDirectory)'
+    default: $(Build.Repository.LocalPath)/src
     
   - name: pythonTestsDirectory
     type: string
-    default: '$(Build.SourcesDirectory)/tests'
-    
-  - name: enableLinters
-    type: boolean
-    default: true
-    
-  - name: enableFormatters
-    type: boolean
-    default: true
-    
-  - name: enableTypeCheckers
-    type: boolean
-    default: true
-    
-  - name: enableTests
-    type: boolean
-    default: true
-    
-  - name: enableSecurityScans
-    type: boolean
-    default: true
-    
-  - name: publishCoverage
-    type: boolean
-    default: true
-    
-  - name: buildWheel
-    type: boolean
-    default: false
+    default: $(Build.Repository.LocalPath)/tests
 
+  - name: pythonPyprojectFilepath
+    type: string
+    default: $(Build.Repository.LocalPath)/src/pyproject.toml
+    
 resources:
   repositories:
     - repository: self
       fetchDepth: 1
 
 stages:
-- stage: Build
-  displayName: 'Build and Test'
+- stage: CodeQuality
+  displayName: Code Quality
   jobs:
-  - job: QualityChecks
-    displayName: 'Code Quality Checks'
+  - job: CodeQuality
+    displayName: Code Quality
     steps:
     - checkout: self
-    
-    - task: UsePythonVersion@0
-      inputs:
-        versionSpec: '${{ parameters.pythonVersion }}'
-        addToPath: true
-        
-    - template: ../templates/level0/python/poetry_install.yml
-      parameters:
-        pythonSrcDirectory: ${{ parameters.pythonSrcDirectory }}
-        pythonPyprojectFilepath: ${{ parameters.pythonSrcDirectory }}/pyproject.toml
-        
-    - template: ../templates/level1/python/formatter.yml
-      parameters:
-        pythonSrcDirectory: ${{ parameters.pythonSrcDirectory }}
-        pythonSourceDirectories: 'src tests'
-        enabled: ${{ parameters.enableFormatters }}
-          
-    - template: ../templates/level1/python/linter.yml
-      parameters:
-        pythonSrcDirectory: ${{ parameters.pythonSrcDirectory }}
-        pythonSourceDirectories: 'src tests'
-        enabled: ${{ parameters.enableLinters }}
-          
-    - template: ../templates/level1/python/typechecking.yml
-      parameters:
-        pythonSrcDirectory: ${{ parameters.pythonSrcDirectory }}
-        pythonSourceDirectories: 'src tests'
-        enabled: ${{ parameters.enableTypeCheckers }}
 
-  - job: Test
-    displayName: 'Run Tests'
-    dependsOn: QualityChecks
-    condition: succeeded()
-    steps:
-    - checkout: self
-    
     - task: UsePythonVersion@0
       inputs:
-        versionSpec: '${{ parameters.pythonVersion }}'
-        addToPath: true
-    
-    - template: ../templates/level0/python/poetry_install.yml
+        versionSpec: ${{ parameters.pythonVersion }}
+
+    - template: ../templates/atomic/python/poetry-install-pyproject.yaml
+      parameters:
+        targetPath: ${{ parameters.pythonSrcDirectory }}
+        pythonPyprojectFilepath: ${{ parameters.pythonPyprojectFilepath }}
+
+    - template: ../templates/composite/python/formatter.yaml
       parameters:
         pythonSrcDirectory: ${{ parameters.pythonSrcDirectory }}
-        pythonPyprojectFilepath: ${{ parameters.pythonSrcDirectory }}/pyproject.toml
-    
-    - template: ../templates/level0/python/pytest_test.yml
-      parameters:
-        pythonTestsDirectory: ${{ parameters.pythonTestsDirectory }}
-        publishCoverage: ${{ parameters.publishCoverage }}
-        enabled: ${{ parameters.enableTests }}
-          
-  - job: Security
-    displayName: 'Security Scanning'
-    dependsOn: Test
-    condition: succeeded()
-    steps:
-    - checkout: self
-    
-    - task: UsePythonVersion@0
-      inputs:
-        versionSpec: '${{ parameters.pythonVersion }}'
-        addToPath: true
-    
-    - template: ../templates/level0/python/poetry_install.yml
+
+    - template: ../templates/composite/python/linter.yaml
       parameters:
         pythonSrcDirectory: ${{ parameters.pythonSrcDirectory }}
-        pythonPyprojectFilepath: ${{ parameters.pythonSrcDirectory }}/pyproject.toml
-    
-    - template: ../templates/level1/python/scanning_1st_vulnerabilities.yml
+
+    - template: ../templates/composite/python/typechecking.yaml
       parameters:
         pythonSrcDirectory: ${{ parameters.pythonSrcDirectory }}
-        enabled: ${{ parameters.enableSecurityScans }}
-        
-    - template: ../templates/level1/python/scanning_3rd_vulnerabilities.yml
-      parameters:
-        pythonSrcDirectory: ${{ parameters.pythonSrcDirectory }}
-        enabled: ${{ parameters.enableSecurityScans }}
-  
-  - job: Package
-    displayName: 'Build Package'
-    dependsOn: Security
-    condition: and(succeeded(), eq(${{ parameters.buildWheel }}, true))
-    steps:
-    - checkout: self
-    
-    - task: UsePythonVersion@0
-      inputs:
-        versionSpec: '${{ parameters.pythonVersion }}'
-        addToPath: true
-    
-    - template: ../templates/level0/python/poetry_install.yml
-      parameters:
-        pythonSrcDirectory: ${{ parameters.pythonSrcDirectory }}
-        pythonPyprojectFilepath: ${{ parameters.pythonSrcDirectory }}/pyproject.toml
-    
-    - template: ../templates/level0/python/build_wheel_bdist.yml
-      parameters:
-        pythonSrcDirectory: ${{ parameters.pythonSrcDirectory }}
-        projectName: ${{ parameters.projectName }}
-        
-    - task: PublishBuildArtifacts@1
-      inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'dist'
-        publishLocation: 'Container'
+
+  # - job: Test
+  #   displayName: Run Tests
+  #   dependsOn: QualityChecks
+  #   steps:
+  #   - checkout: self
+
+  #   - task: UsePythonVersion@0
+  #     inputs:
+  #       versionSpec: ${{ parameters.pythonVersion }}
+  #       addToPath: true
+
+  #   - template: ../templates/atomic/python/poetry_install.yaml
+  #     parameters:
+  #       pythonSrcDirectory: ${{ parameters.pythonSrcDirectory }}
+  #       pythonPyprojectFilepath: ${{ parameters.pythonSrcDirectory }}/pyproject.toml
+
+  #   - template: ../templates/atomic/python/pytest_test.yaml
+  #     parameters:
+  #       pythonTestsDirectory: ${{ parameters.pythonTestsDirectory }}
+  #       publishCoverage: ${{ parameters.publishCoverage }}
+  #       enabled: ${{ parameters.enableTests }}
+
+  # - job: Security
+  #   displayName: Security Scanning
+  #   dependsOn: Test
+  #   steps:
+  #   - checkout: self
+
+  #   - task: UsePythonVersion@0
+  #     inputs:
+  #       versionSpec: ${{ parameters.pythonVersion }}
+  #       addToPath: true
+
+  #   - template: ../templates/atomic/python/poetry_install.yaml
+  #     parameters:
+  #       pythonSrcDirectory: ${{ parameters.pythonSrcDirectory }}
+  #       pythonPyprojectFilepath: ${{ parameters.pythonSrcDirectory }}/pyproject.toml
+
+  #   - template: ../templates/composite/python/scanning_1st_vulnerabilities.yaml
+  #     parameters:
+  #       pythonSrcDirectory: ${{ parameters.pythonSrcDirectory }}
+
+  #   - template: ../templates/composite/python/scanning_3rd_vulnerabilities.yaml
+  #     parameters:
+  #       pythonSrcDirectory: ${{ parameters.pythonSrcDirectory }}

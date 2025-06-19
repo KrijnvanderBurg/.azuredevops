@@ -1,0 +1,19 @@
+# https://pycqa.github.io/isort/
+
+# Requirements:
+# - Python version/architecture is set in pipeline
+
+parameters:
+- name: targetPath
+  type: string
+
+- name: configFilepath
+  type: string
+  default: $(Build.Repository.LocalPath)/.devcontainer/.dotfiles/.isort.cfg
+
+steps:
+- script: |
+   sh $(Build.Repository.LocalPath)/.devcontainer/.dotfiles/scripts/isort.sh \
+    --target_path=${{ parameters.targetPath }} \
+    --config_filepath=${{ parameters.configFilepath }} 
+  displayName: Isort (formatter)
