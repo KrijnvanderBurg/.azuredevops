@@ -1,6 +1,6 @@
+import argparse
 import logging
 import subprocess
-import argparse
 from pathlib import Path
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -13,16 +13,17 @@ def get_changed_files() -> list[Path]:
         capture_output=True,
         text=True,
     )
-    
+
     files: list[Path] = []
     for file in result.stdout.strip().splitlines():
         files.append(Path(file))
     return files
 
+
 def find_test_files(changed_files: list[Path], tests_path: Path) -> list[Path]:
     logger.info(f"Changed files: {changed_files}")
     test_files: list[Path] = []
-    
+
     for file in changed_files:
         if file.suffix == ".py":  # Only check Python files
             # Remove the monorepo structure from the file path, aka <repo>/src/<package>.
@@ -42,15 +43,16 @@ def find_test_files(changed_files: list[Path], tests_path: Path) -> list[Path]:
 
     return test_files
 
+
 def main(tests_path: Path) -> None:
     changed_files = get_changed_files()
     test_files = find_test_files(changed_files=changed_files, tests_path=tests_path)
-    logger.info(f"##vso[task.setvariable variable=testFiles]{" ".join(map(str, test_files))}")
+    logger.info(f"##vso[task.setvariable variable=testFiles]{' '.join(map(str, test_files))}")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Find relevant test files based on `git diff`.")
-    parser.add_argument('--tests-path', required=True, help="Path to the tests folder in the repository.")
+    parser.add_argument("--tests-path", required=True, help="Path to the tests folder in the repository.")
     args = parser.parse_args()
 
     tests_path = Path(args.tests_path)
