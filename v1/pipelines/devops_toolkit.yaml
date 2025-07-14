@@ -1,0 +1,24 @@
+parameters:
+  - name: pythonVersion
+    type: string
+    default: 3.11
+    
+  - name: pythonSrcDirectory
+    type: string
+    default: $(Build.Repository.LocalPath)/src
+    
+  - name: pythonTestsDirectory
+    type: string
+    default: $(Build.Repository.LocalPath)/tests
+
+  - name: pythonPyprojectFilepath
+    type: string
+    default: $(Build.Repository.LocalPath)/pyproject.toml
+    
+stages:
+  - template: /v1/templates/solution/python/python-ci.yaml
+    parameters:
+      pythonVersion: ${{ parameters.pythonVersion }}
+      pythonSrcDirectory: ${{ parameters.pythonSrcDirectory }}
+      pythonTestsDirectory: ${{ parameters.pythonTestsDirectory }}
+      pythonPyprojectFilepath: ${{ parameters.pythonPyprojectFilepath }}
