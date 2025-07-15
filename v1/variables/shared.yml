@@ -32,7 +32,7 @@ variables:
     readonly: true
 
   - name: pythonUnitTestsPaths
-    value: $(Build.Repository.LocalPath)/hello_world/tests/unit
+    value: $(Build.Repository.LocalPath)/hello_world/tests
     readonly: true
 
   - name: PythonIntegrationtestsPaths
