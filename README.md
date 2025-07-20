@@ -296,7 +296,7 @@ steps:
 ```
 
 When you run the same tool locally in VS Code it uses the same script and config file from `.dotfiles`:
-```json
+```jsonc
 // VS Code Task
 {
    "label": "pylint",
