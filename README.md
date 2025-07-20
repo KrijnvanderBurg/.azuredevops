@@ -1,399 +1,345 @@
-# Azure DevOps Pipeline Templates for Flint
+# Azure DevOps Pipeline Templates - Complete CI/CD Suite
 
-This repository contains reusable Azure DevOps pipeline templates for the Flint PySpark ETL framework.
+A comprehensive collection of Azure DevOps pipeline templates providing enterprise-grade CI/CD capabilities for multiple technologies. This repository contains reusable, modular pipeline templates designed to standardize and accelerate DevOps workflows across organizations.
 
-## Table of Contents
+![Azure DevOps Pipeline Screenshot](./docs/azure_devops_pipeline_screenshot.png)
 
-1. [Structure Overview](#structure-overview)
-2. [Getting Started](#getting-started)
-3. [Template Hierarchy](#template-hierarchy)
-4. [Python Template Examples](#python-template-examples)
-5. [Complete Template Reference](#complete-template-reference)
-6. [Best Practices](#best-practices)
-7. [Versioning Strategy](#versioning-strategy)
-8. [Integration with Flint](#integration-with-flint)
-9. [Contributing Guidelines](#contributing-guidelines)
+## 🚀 Why Use These Pipeline Templates?
 
-## Structure Overview
+### Near-Zero Configuration CI/CD Pipelines
+These Azure DevOps templates provide fully configured CI/CD pipelines with industry best practices built-in, ensuring consistent, secure, and reliable deployments across your entire organization. No more reinventing the wheel or lengthy pipeline setup procedures.
 
+### Comprehensive Tool Integration
+This template collection includes 25+ carefully curated industry-standard development tools, primarily for Python, across multiple categories:
+
+- **🎨 Code Formatters**: Ruff, Black, isort - Ensure consistent code style across teams
+- **🔍 Linters & Analyzers**: Pylint, Flake8, Ruff Linter - Catch bugs and enforce best practices
+- **🔒 Type Checkers**: Mypy, Pyright, Pyre - Prevent type-related errors before deployment
+- **🛡️ Security Scanners**: Bandit, Semgrep, DevSkim - Identify vulnerabilities and security issues
+- **🔐 Secret Detection**: Gitleaks, TruffleHog - Prevent credential leaks in repositories
+- **📦 Dependency Analysis**: OWASP Dependency Check, OSSAudit - Monitor third-party package vulnerabilities
+- **🧪 Testing & Coverage**: Pytest with Coverage.py - Ensure code reliability and test completeness
+- **📚 Documentation**: Sphinx - Generate professional documentation automatically
+- **🏗️ Infrastructure**: OpenTofu/Terraform - Infrastructure as Code deployment and validation
+
+> **💡 Perfect Local-Remote Consistency:** These CI/CD templates use the same configurations as the [DevContainer environments](https://github.com/KrijnvanderBurg/.devcontainer). Test your pipeline changes locally with identical tool execution — when local checks pass, remote execution is guaranteed to pass too.
+
+### Modular Architecture Design
+
+#### Two-Layer Template Architecture
+This implementation uses a modular two-tier architecture for maximum reusability and maintainability:
+
+1. **Atomic Templates** - Single-purpose, focused templates for individual tools
+2. **Composite Templates** - Combine related atomic templates for common workflows
+
+Once the templates are integrated, you can use them directly in your pipelines. The key advantage of this approach is abstraction: for example, if your pipeline references a `linter` template, you can update or swap out the underlying implementation of the linter without modifying any consuming pipelines, as long as the expected parameters remain consistent. This ensures that all dependent pipelines benefit from updates or improvements instantly, with no required changes to their configuration.
+
+> **🚀 Want to see these pipelines in action locally?** The [DevContainer environments](https://github.com/KrijnvanderBurg/.devcontainer) run the exact same tools with identical configurations — perfect for testing pipeline changes before committing. **10x more detail** on local-remote consistency and zero-config development environments.
+
+## 🏁 Getting Started
+
+### Quick Installation
+
+1. **🍴 Create Templates Repository**: 
+   - **Option A**: Fork [`KrijnvanderBurg/.azuredevops`](https://github.com/KrijnvanderBurg/.azuredevops) to your organization
+   - **Option B**: Use my repository directly in step 3
+
+2. **📥 Add .azuredevops as submodule**
+   ```bash
+   git submodule add https://github.com/KrijnvanderBurg/.azuredevops.git .azuredevops
+   git submodule update --init --recursive
+   ```
+
+   > **Important**: The `--recursive` flag is required for nested submodules. The [`.dotfiles`](https://github.com/KrijnvanderBurg/.dotfiles) directory is a submodule containing shared configuration files.
+
+3. **📦 Create your pipeline file** (`azure-pipelines.yml` in repository root):
+   ```yaml
+   trigger:
+     - main
+
+   resources:
+     repositories:
+       - repository: templates
+         type: git
+         name: KrijnvanderBurg/.azuredevops  # Reference from step 1
+
+   extends:
+     template: v1/pipelines/devops_toolkit.yaml@templates
+     parameters:
+       pythonVersion: 3.11
+       pythonSrcDirectory: $(Build.Repository.LocalPath)/src
+       pythonTestsDirectory: $(Build.Repository.LocalPath)/tests
+   ```
+
+4. **🚀 Commit and Push** - Azure DevOps automatically detects and runs your pipeline
+
+5. **⚡ Verify Setup** - Check that pipeline runs and all quality gates pass
+
+### 🔍 Why External Repository Reference is Required
+
+Azure DevOps cannot see inside submodules when creating pipelines - it will only see the submodule URL reference and not the files.
+
+**Solution**: Reference the root template as external repository (`@templates`), not as local file.
+
+#### Our Submodule Approach (Recommended)
+```yaml
+resources:
+  repositories:
+    - repository: templates
+      type: git  
+      name: KrijnvanderBurg/.azuredevops
+
+extends:
+  template: v1/pipelines/devops_toolkit.yaml@templates
 ```
-.azuredevops/
-├── v1/                           # Current version of pipeline templates
-│   ├── containers/               # Container definitions for build/test environments
-│   ├── pipelines/                # Complete pipeline definitions
-│   ├── pools/                    # Agent pool configurations
-│   ├── scripts/                  # Helper scripts used by pipelines
-│   ├── templates/                # Reusable pipeline templates
-│   │   ├── atomic/               # Atomic templates (single-purpose)
-│   │   │   ├── azuredevops/      # Azure DevOps specific templates
-│   │   │   ├── git/              # Git operation templates
-│   │   │   ├── github/           # GitHub integration templates
-│   │   │   ├── opentofu/         # OpenTofu (Terraform) templates
-│   │   │   └── python/           # Python tooling templates
-│   │   └── composite/               # Composite templates combining atomic templates
-│   │       ├── opentofu/         # Composite OpenTofu templates
-│   │       └── python/           # Composite Python templates
-│   └── variables/                # Pipeline variables and variable groups
-│       ├── environments/         # Environment-specific variables
-│       ├── groups/               # Variable groups
-│       └── shared.yaml            # Variables shared across pipelines
-└── v2/                           # Next generation templates (in development)
+
+**Benefits:**
+- **Single Reference**: Only need `@templates` once for main pipeline
+- **Internal Templates**: Templates inside submodule reference each other directly 
+- **Unified Structure**: All files in expected locations after checkout
+- **See Example**: [`devops_toolkit.yaml`](https://github.com/KrijnvanderBurg/.azuredevops/blob/main/v1/pipelines/devops_toolkit.yaml) uses internal references without `@templates`
+
+#### Alternative Approach (Not Recommended)
+```yaml
+resources:
+  repositories:
+    - repository: templates
+      type: git
+      name: KrijnvanderBurg/Templates
+    - repository: configs  
+      type: git
+      name: KrijnvanderBurg/Configurations
+
+steps:
+- checkout: templates
+- checkout: configs  
+- checkout: self
 ```
 
-## Getting Started
+**Problems:**
+- Multiple repository references required
+- Files scattered across different agent directories
+- Complex path management
+- Harder maintenance
 
-### Setting Up a New Pipeline
 
-#### 1. Add the Template Repository as a Git Submodule
-
-If you're starting a new project, add this templates repository as a Git submodule:
+## 📁 Repository Structure
 
 ```bash
-git submodule add https://github.com/your-org/dp-azuredevops.git .azuredevops
+.azuredevops/
+├── v1/                              # Current stable version
+│   ├── pipelines/                     # Complete end-to-end pipeline definitions
+│   │   ├── devops_toolkit.yaml          # Python project CI/CD pipeline
+│   │   ├── flint.yaml                   # Advanced Python project pipeline
+│   │   └── data-platform.yaml          # Data platform specific pipeline
+│   ├── templates/                     # Reusable pipeline templates
+│   │   ├── atomic/                      # Single-purpose atomic templates
+│   │   │   ├── python/                    # Python tooling (25+ tools)
+│   │   │   ├── opentofu/                  # OpenTofu/Terraform operations
+│   │   │   ├── azuredevops/               # Azure DevOps utilities
+│   │   │   └── git/                       # Git operations with submodules
+│   │   ├── composite/                   # Multi-tool workflow templates
+│   │   │   ├── python/                    # Python quality gates & workflows
+│   │   │   └── opentofu/                  # Infrastructure deployment workflows
+│   │   └── solution/                    # Complete project lifecycle templates
+│   │       └── python/                    # Full Python CI/CD solution
+│   ├── scripts/                       # Helper scripts and utilities
+│   │   ├── python/                        # Python automation scripts
+│   │   ├── powershell/                    # PowerShell utilities
+│   │   └── shell/                         # Shell script utilities
+│   └── variables/                     # Centralized variable management
+│       ├── shared.yml                     # Cross-project shared variables
+│       └── environments/                  # Environment-specific configurations
+│           ├── dev.yml                      # Development environment
+│           └── prod.yml                     # Production environment
+├── v2/                              # Next generation (in development)
 ```
 
-#### 2. Create a Basic Pipeline File
 
-Create an `azure-pipelines.yaml` file in your project root with the following contents:
 
+## 🛠️ Complete Template Reference
+
+### 🐍 Python Development Templates
+
+#### Atomic Templates (Single-Purpose)
+
+**Formatters**
+- **Ruff Formatter** <sup>[Docs](https://docs.astral.sh/ruff/) | [Template](v1/templates/atomic/python/ruff-formatter.yaml)</sup> - Lightning-fast Python formatter written in Rust. **Primary recommendation** for modern Python development.
+- **Black** <sup>[Docs](https://black.readthedocs.io/) | [Template](v1/templates/atomic/python/black.yaml)</sup> - The uncompromising Python code formatter.
+- **isort** <sup>[Docs](https://pycqa.github.io/isort/) | [Template](v1/templates/atomic/python/isort.yaml)</sup> - Sorts Python imports alphabetically and separates them into sections.
+
+**Linters & Code Quality**
+- **Ruff Linter** <sup>[Docs](https://docs.astral.sh/ruff/) | [Template](v1/templates/atomic/python/ruff-linter.yaml)</sup> - Extremely fast linter with 800+ rules. **Primary recommendation** for comprehensive code quality checks.
+- **Pylint** <sup>[Docs](https://pylint.org/) | [Template](v1/templates/atomic/python/pylint.yaml)</sup> - Comprehensive static code analyzer that checks for errors and enforces coding standards.
+- **Flake8** <sup>[Docs](https://flake8.pycqa.org/) | [Template](v1/templates/atomic/python/flake8.yaml)</sup> - Combines pycodestyle, pyflakes, and mccabe to check code style and quality.
+- **Vulture** <sup>[Docs](https://github.com/jendrikseipp/vulture) | [Template](v1/templates/atomic/python/vulture.yaml)</sup> - Finds unused code in Python programs.
+
+**Type Checkers**
+- **Mypy** <sup>[Docs](https://mypy-lang.org/) | [Template](v1/templates/atomic/python/mypy.yaml)</sup> - Optional static type checker for Python.
+- **Pyright** <sup>[Docs](https://microsoft.github.io/pyright) | [Template](v1/templates/atomic/python/pyright.yaml)</sup> - Fast, standards-based static type checker.
+- **Pyre** <sup>[Docs](https://pyre-check.org/) | [Template](v1/templates/atomic/python/pyre.yaml)</sup> - Facebook's performant type checker for large codebases.
+
+**Security & Vulnerability Scanners**
+- **Bandit** <sup>[Docs](https://bandit.readthedocs.io) | [Template](v1/templates/atomic/python/bandit.yaml)</sup> - Scans Python code for common security issues.
+- **Semgrep** <sup>[Docs](https://semgrep.dev/p/python) | [Template](v1/templates/atomic/python/semgrep.yaml)</sup> - Fast static analysis for finding bugs and security vulnerabilities.
+- **DevSkim** <sup>[Docs](https://github.com/microsoft/DevSkim) | [Template](v1/templates/atomic/python/devskim.yaml)</sup> - Microsoft's security analysis framework.
+- **Graudit** <sup>[Github](https://github.com/wireghoul/graudit) | [Template](v1/templates/atomic/python/graudit.yaml)</sup> - Grep-based source code auditing tool.
+
+**Secrets & Credentials Detection**
+- **TruffleHog** <sup>[Github](https://github.com/trufflesecurity/trufflehog) | [Template](v1/templates/atomic/python/trufflehog.yaml)</sup> - Searches repositories for high-entropy strings and secrets.
+- **Gitleaks** <sup>[Github](https://github.com/gitleaks/gitleaks) | [Template](v1/templates/atomic/python/gitleaks.yaml)</sup> - SAST tool for detecting hardcoded secrets.
+
+**Dependency Analysis**
+- **OSSAudit** <sup>[Github](https://github.com/illikainen/ossaudit) | [Template](v1/templates/atomic/python/ossaudit.yaml)</sup> - Uses Sonatype OSS Index to audit Python packages for vulnerabilities.
+- **OWASP Dependency Check** <sup>[Docs](https://owasp.org/www-project-dependency-check/) | [Template](v1/templates/atomic/python/owasp.yaml)</sup> - Software Composition Analysis tool for detecting vulnerabilities in dependencies.
+
+**Testing & Coverage**
+- **Pytest** <sup>[Docs](https://docs.pytest.org) | [Template](v1/templates/atomic/python/pytest.yaml)</sup> - The pytest framework with coverage reporting.
+- **Pytest Split** <sup>[Template](v1/templates/atomic/python/pytest-split.yaml)</sup> - Run tests in parallel across multiple agents for faster execution.
+- **Pytest Diff** <sup>[Template](v1/templates/atomic/python/pytest-diff.yaml)</sup> - Run only tests affected by code changes.
+
+**Dependency Management & Packaging**
+- **Poetry Install** <sup>[Docs](https://python-poetry.org/) | [Template](v1/templates/atomic/python/poetry-install-pyproject.yaml)</sup> - Install dependencies using Poetry and pyproject.toml.
+- **Pip Install Requirements** <sup>[Template](v1/templates/atomic/python/pip-install-requirements.yaml)</sup> - Install dependencies from requirements.txt.
+- **Pip Install Editable** <sup>[Template](v1/templates/atomic/python/pip-install-editable.yml)</sup> - Install package in editable/development mode.
+- **Python Build Wheel** <sup>[Docs](https://build.pypa.io) | [Template](v1/templates/atomic/python/build-wheel-bdist.yaml)</sup> - Build Python packages using the build frontend.
+- **Twine Upload** <sup>[Docs](https://twine.readthedocs.io) | [Template](v1/templates/atomic/python/twine-upload.yml)</sup> - Upload Python packages to PyPI.
+
+**Documentation**
+- **Sphinx** <sup>[Docs](https://www.sphinx-doc.org/) | [Template](v1/templates/atomic/python/sphinx.yaml)</sup> - Generate professional documentation.
+
+**Metadata Extraction**
+- **PyProject Extract Metadata** <sup>[Template](v1/templates/atomic/python/pyproject-extract-metadata.yaml)</sup> - Extract version, name, and metadata from pyproject.toml.
+
+#### Composite Templates (Multi-Tool Workflows)
+
+- **Formatter Workflow** <sup>[Template](v1/templates/composite/python/formatter.yaml)</sup> - Combines Ruff Formatter, Black, and isort for complete code formatting.
+- **Linter Workflow** <sup>[Template](v1/templates/composite/python/linter.yaml)</sup> - Runs Ruff Linter, Pylint, and Flake8 for comprehensive code quality analysis.
+- **Type Checking Workflow** <sup>[Template](v1/templates/composite/python/typechecking.yaml)</sup> - Executes Mypy, Pyright, and Pyre for complete type validation.
+- **1st Party Vulnerability Scanning** <sup>[Template](v1/templates/composite/python/scanning_1st_vulnerabilities.yaml)</sup> - Scans your source code with Bandit, Semgrep, DevSkim, and Graudit.
+- **3rd Party Vulnerability Scanning** <sup>[Template](v1/templates/composite/python/scanning_3rd_vulnerabilities.yaml)</sup> - Analyzes dependencies with OSSAudit and OWASP Dependency Check.
+- **Documentation Generation** <sup>[Template](v1/templates/composite/python/documentation.yaml)</sup> - Complete documentation workflow with Sphinx.
+
+#### Solution Templates (Complete CI/CD)
+
+- **Python CI Pipeline** <sup>[Template](v1/templates/solution/python/python-ci.yaml)</sup> - Complete CI/CD pipeline including:
+  - Quality Assurance stage (formatters, linters, type checkers)
+  - Testing stage (pytest with coverage)
+  - Vulnerability Scanning stage (security analysis)
+
+### 🛠️ Infrastructure (OpenTofu/Terraform) Templates
+
+#### Atomic Templates
+
+- **OpenTofu Install** <sup>[Template](v1/templates/atomic/opentofu/opentofu-install.yaml)</sup> - Install OpenTofu binary for pipeline execution.
+- **OpenTofu Init** <sup>[Template](v1/templates/atomic/opentofu/opentofu-init.yaml)</sup> - Initialize OpenTofu working directory.
+- **OpenTofu Validate** <sup>[Template](v1/templates/atomic/opentofu/opentofu-validate.yaml)</sup> - Validate OpenTofu configuration files.
+- **OpenTofu Plan** <sup>[Template](v1/templates/atomic/opentofu/opentofu-plan.yaml)</sup> - Create OpenTofu execution plan.
+- **OpenTofu Apply** <sup>[Template](v1/templates/atomic/opentofu/opentofu-apply.yaml)</sup> - Apply OpenTofu configuration changes.
+
+#### Composite Templates
+
+- **Validate & Plan** <sup>[Template](v1/templates/composite/opentofu/validate_and_plan.yml)</sup> - Complete validation and planning workflow.
+- **Apply Infrastructure** <sup>[Template](v1/templates/composite/opentofu/apply.yml)</sup> - Full infrastructure deployment workflow.
+
+### 🔄 Azure DevOps Utilities
+
+- **Promote Artifact** <sup>[Template](v1/templates/atomic/azuredevops/promote-artifact.yaml)</sup> - Promote artifacts between environments or feeds.
+- **PR Comment** <sup>[Template](v1/templates/atomic/azuredevops/pr-comment.yaml)</sup> - Add automated comments to pull requests.
+
+### 📂 Git Operations
+
+- **Checkout** <sup>[Template](v1/templates/atomic/git/checkout.yaml)</sup> - Standard git checkout with optimizations.
+- **Checkout with Submodules** <sup>[Template](v1/templates/atomic/git/checkout-with-submodules.yaml)</sup> - Git checkout with recursive submodule initialization.
+
+
+
+## 🏗️ Architecture: Shared Configuration Submodule `.dotfiles`
+
+This Azure DevOps repository uses a **nested [`.dotfiles`](https://github.com/KrijnvanderBurg/.dotfiles) submodule architecture** to ensure **100% consistency** between local development environments and CI/CD pipelines.
+
+### Why Nested Submodules?
+
+The `.dotfiles` directory is itself a Git submodule that contains:
+- **Configuration files** for all development tools (linters, formatters, type checkers, security scanners)
+- **Shell scripts** that execute each tool with identical parameters and settings
+- **Shared standards** across multiple environments
+
+### Consistency Across Environments
+
+This same `.dotfiles` submodule is used by **other DevOps components**:
+
+- **[`.devcontainer`](https://github.com/krijnvanderburg/.devcontainer)** - Local development environments
+- **`.azuredevops`** (this repository) - CI/CD pipeline templates and automation
+- `...` other future submodules
+
+### Benefits of This Architecture
+
+🎯 **Identical Tool Execution**: The exact same shell script runs both locally in DevContainers and in CI/CD pipelines  
+🔒 **Configuration Consistency**: All environments use identical configuration files for every tool  
+🚀 **Quality Gate Confidence**: If a tool passes locally, it will pass in CI/CD (and vice versa)  
+⚡ **Single Source of Truth**: Update tool configurations once, apply everywhere  
+🛠️ **Easier Maintenance**: Modify scripts and configs in one place, benefit all environments  
+
+### How It Works: Pylint Example
+When the CI/CD pipeline (Azure DevOps template) runs a tool, it uses the script and config file from `.dotfiles`:
+```js
+// Example Azure Devops pipeline step
+steps:
+- script: |
+    //               The Nested Submodule .dotfiles  ⤵
+    sh $(Build.Repository.LocalPath)/.azuredevops/.dotfiles/python/scripts/pylint.sh \ // ← Same script
+      $(Build.Repository.LocalPath)/src \                                            // ← Same dirpath
+      --config $(Build.Repository.LocalPath)/.azuredevops/.dotfiles/python/.pylintrc // ← Same config
+  displayName: Pylint (linter)
+  ...
+```
+
+When you run the same tool locally in VS Code it uses the same script and config file from `.dotfiles`:
+```json
+// VS Code Task
+{
+   "label": "pylint",
+   //              The Nested Submodule .dotfiles  ⤵
+   "command": "${workspaceFolder}/.devcontainer/.dotfiles/python/scripts/pylint.sh", // ← Same script
+   "args": [
+      "${workspaceFolder}/src",                                                 // ← Same target dirpath
+      "--config ${workspaceFolder}/.devcontainer/.dotfiles/python/.pylintrc"   // ← Same config file
+   ]
+}
+```
+
+This ensures that **quality gates in CI/CD match your local experience exactly**; eliminating the need to wait for CI/CD runs to see if code conforms to quality standards.
+
+
+
+## 📞 Support & Troubleshooting
+
+**"Why can't I directly reference templates?"**
+```
+Error: Template reference './azuredevops/v1/templates/...' not found
+```
+This is expected! Azure DevOps only sees the submodule URL, not its contents, when creating pipelines. Try it yourself: open the repository remote on github and open the submodule file, it only includes a git reference, not the actual files. The submodule must be explicitly cloned also, which Azure DevOps does not do when creating a pipeline in the UI.
+- **Solution**: Use `@templates` repository reference (see examples above)
+- **Why**: During execution, templates automatically checkout submodules with correct structure
+
+**Configuration File Not Found**
+```  
+Error: Configuration / script file not found: ...
+```
+Ensure git checkout includes submodules:
 ```yaml
-trigger:
-  - main
-
-extends:
-  template: .azuredevops/v1/pipelines/python.yaml
-  parameters:
-    projectName: 'your-project-name'
-    pythonVersion: '3.11'
+- checkout: self
+  submodules: recursive
 ```
 
-#### 3. Customize the Pipeline
+---
 
-You can customize the pipeline by adding parameters:
+## 🚀 Ready to Experience the Full Workflow?
 
-```yaml
-trigger:
-  - main
+**Complete Integration:** Explore the [main DevOps Toolkit](https://github.com/KrijnvanderBurg/DevOps-Toolkit) to understand how DevContainers, CI/CD templates, and shared configurations work together as a **unified DevOps solution**.
 
-extends:
-  template: .azuredevops/v1/pipelines/python.yaml
-  parameters:
-    projectName: 'flint'
-    pythonVersion: '3.11'
-```
+**Local Development First:** Start with the [DevContainer environments](https://github.com/KrijnvanderBurg/.devcontainer) to experience the same tools locally with zero configuration. **Perfect consistency** means when your local checks pass, your CI/CD will pass too.
 
-## Template Hierarchy
+**Understand the Architecture:** Dive deep into the [shared configuration strategy](https://github.com/KrijnvanderBurg/.dotfiles) that makes local-remote consistency possible. See how **one script, one config** powers both environments.
 
-- **Level 0 Templates**: Atomic, single-purpose templates that perform one specific task
-- **Level 1 Templates**: Composite templates that combine multiple Level 0 templates for common workflows
-
-### Using Level 0 Templates
-
-Level 0 templates are atomic, single-purpose templates that perform one specific task. Use these when you need fine-grained control over your pipeline.
-
-Example: Installing dependencies with Poetry
-
-```yaml
-- template: .azuredevops/v1/templates/atomic/python/poetry_install.yaml
-  parameters:
-    pythonSrcDirectory: $(Build.SourcesDirectory)
-    pythonPyprojectFilepath: $(Build.SourcesDirectory)/pyproject.toml
-```
-
-### Using Level 1 Templates
-
-Level 1 templates combine multiple Level 0 templates to perform a composite operation. Use these to simplify your pipeline by grouping related tasks.
-
-Example: Running all code formatters
-
-```yaml
-- template: .azuredevops/v1/templates/composite/python/formatter.yaml
-  parameters:
-    pythonSrcDirectory: $(Build.SourcesDirectory)
-    pythonSourceDirectories: 'src tests'
-    enabled: true
-    continueOnError: false
-```
-
-## Python Template Examples
-
-**Basic Python Build Pipeline:**
-
-```yaml
-# azure-pipelines.yaml
-trigger:
-  - main
-
-pool:
-  vmImage: 'ubuntu-latest'
-
-extends:
-  template: .azuredevops/v1/pipelines/python.yaml
-  parameters:
-    projectName: 'flint'
-    pythonVersion: '3.11'
-```
-
-**Creating Custom Pipelines:**
-
-```yaml
-trigger:
-  - main
-
-pool:
-  vmImage: 'ubuntu-latest'
-
-stages:
-- stage: Build
-  jobs:
-  - job: Format
-    steps:
-    - checkout: self
-    
-    - task: UsePythonVersion@0
-      inputs:
-        versionSpec: '3.11'
-        addToPath: true
-    
-    - template: .azuredevops/v1/templates/atomic/python/poetry_install.yaml
-      parameters:
-        pythonSrcDirectory: $(Build.SourcesDirectory)
-        pythonPyprojectFilepath: $(Build.SourcesDirectory)/pyproject.toml
-    
-    - template: .azuredevops/v1/templates/composite/python/formatter.yaml
-      parameters:
-        pythonSrcDirectory: $(Build.SourcesDirectory)
-        pythonSourceDirectories: 'src tests'
-```
-
-## Complete Template Reference
-
-### Common Parameters
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| pythonSrcDirectory | Root directory of the Python project | $(Build.SourcesDirectory) |
-| pythonPyprojectFilepath | Path to pyproject.toml file | $(Build.SourcesDirectory)/pyproject.toml |
-| pythonSourceDirectories | Space-separated list of source directories | src tests |
-| enabled | Whether to run the template | true |
-| continueOnError | Whether to continue on error | false |
-
-### Level 0 Python Templates
-
-| Template | Description | Required Parameters | Optional Parameters |
-|----------|-------------|---------------------|---------------------|
-| `poetry_install.yaml` | Installs Python dependencies using Poetry | `pythonSrcDirectory`, `pythonPyprojectFilepath` | `poetryHome`, `poetryCacheDirectory` |
-| `pytest_test.yaml` | Runs pytest tests with coverage | `pythonTestsDirectory` | `publishCoverage`, `testResultsFormat` |
-| `black_formatter.yaml` | Runs Black code formatter | `pythonSourceDirectories` | `continueOnError` |
-| `ruff_formatter.yaml` | Runs Ruff code formatter | `pythonSourceDirectories` | `continueOnError` |
-| `isort_formatter.yaml` | Runs isort import sorter | `pythonSourceDirectories` | `continueOnError` |
-| `ruff_linter.yaml` | Runs Ruff linter | `pythonSourceDirectories` | `continueOnError` |
-| `pylint_linter.yaml` | Runs Pylint linter | `pythonSourceDirectories` | `continueOnError` |
-| `flake8_linter.yaml` | Runs Flake8 linter | `pythonSourceDirectories` | `continueOnError` |
-| `mypy_typechecker.yaml` | Runs MyPy type checker | `pythonSourceDirectories` | `continueOnError` |
-| `pyre_typechecker.yaml` | Runs Pyre type checker | `pythonSourceDirectories` | `continueOnError` |
-| `pyright_typechecker.yaml` | Runs Pyright type checker | `pythonSourceDirectories` | `continueOnError` |
-| `bandit_scanner.yaml` | Runs Bandit security scanner | `pythonSourceDirectories` | `continueOnError` |
-| `semgrep_vuln_scanner.yaml` | Runs Semgrep vulnerability scanner | `pythonSourceDirectories` | `continueOnError` |
-| `trufflehog_secret_scanner.yaml` | Runs TruffleHog secret scanner | `pythonSourceDirectories` | `continueOnError` |
-| `vulture_deadcode_scanner.yaml` | Runs Vulture dead code scanner | `pythonSourceDirectories` | `continueOnError` |
-| `ossaudit_scanner.yaml` | Runs OSSAudit dependency scanner | `pythonSrcDirectory` | `continueOnError` |
-| `build_wheel_bdist.yaml` | Builds Python wheel | `pythonSrcDirectory`, `projectName` | `publishArtifacts` |
-| `twine_upload.yaml` | Uploads package to PyPI | `pythonSrcDirectory` | `repository` |
-
-### Level 1 Python Templates
-
-| Template | Description | Included Level 0 Templates | Required Parameters |
-|----------|-------------|---------------------------|---------------------|
-| `formatter.yaml` | Runs all code formatters | `black_formatter.yaml`, `isort_formatter.yaml`, `ruff_formatter.yaml` | `pythonSrcDirectory`, `pythonSourceDirectories` |
-| `linter.yaml` | Runs all code linters | `ruff_linter.yaml`, `pylint_linter.yaml`, `flake8_linter.yaml` | `pythonSrcDirectory`, `pythonSourceDirectories` |
-| `typechecking.yaml` | Runs all type checkers | `mypy_typechecker.yaml`, `pyre_typechecker.yaml`, `pyright_typechecker.yaml` | `pythonSrcDirectory`, `pythonSourceDirectories` |
-| `scanning_1st_vulnerabilities.yaml` | Scans first-party code for vulnerabilities | `bandit_scanner.yaml`, `semgrep_vuln_scanner.yaml`, `trufflehog_secret_scanner.yaml`, `vulture_deadcode_scanner.yaml`, `devskim_scanner.yaml`, `graudit_scanner.yaml` | `pythonSrcDirectory` |
-| `scanning_3rd_vulnerabilities.yaml` | Scans third-party dependencies for vulnerabilities | `ossaudit_scanner.yaml`, `owasp_scanner.yaml` | `pythonSrcDirectory` |
-
-## Best Practices
-
-### General Pipeline Best Practices
-
-#### 1. Use the Appropriate Template Level
-
-- **Level 0 templates** are best for fine-grained control
-- **Level 1 templates** are best for common workflows
-- **Complete pipelines** are best for standard projects
-
-#### 2. Parameter Naming Conventions
-
-- Use consistent parameter names across your pipelines
-- Follow the established parameter naming patterns:
-  - `pythonSrcDirectory` for the source directory
-  - `pythonTestsDirectory` for the test directory
-  - `pythonSourceDirectories` for specifying source directories to analyze
-
-#### 3. Resource Efficiency
-
-- Use conditional execution to skip unnecessary steps
-- Group related tasks to minimize pipeline overhead
-- Consider using parallel jobs for independent tasks
-
-### Python Project Best Practices
-
-#### 1. Dependency Management
-
-- Use Poetry for dependency management
-- Keep your dependencies up-to-date
-- Pin versions for production dependencies
-
-```yaml
-- template: .azuredevops/v1/templates/atomic/python/poetry_install.yaml
-  parameters:
-    pythonSrcDirectory: $(Build.SourcesDirectory)
-    pythonPyprojectFilepath: $(Build.SourcesDirectory)/pyproject.toml
-```
-
-#### 2. Code Quality
-
-- Run formatters before linters
-- Run linters before tests
-- Keep formatting and linting steps separate from testing
-
-```yaml
-- template: .azuredevops/v1/templates/composite/python/formatter.yaml
-  parameters:
-    pythonSrcDirectory: $(Build.SourcesDirectory)
-    pythonSourceDirectories: 'src tests'
-
-- template: .azuredevops/v1/templates/composite/python/linter.yaml
-  parameters:
-    pythonSrcDirectory: $(Build.SourcesDirectory)
-    pythonSourceDirectories: 'src tests'
-```
-
-#### 3. Testing
-
-- Run tests in a separate job from linting
-- Publish test results and coverage reports
-- Use the appropriate test runner for your project
-
-```yaml
-- template: .azuredevops/v1/templates/atomic/python/pytest_test.yaml
-  parameters:
-    pythonTestsDirectory: $(Build.SourcesDirectory)/tests
-    publishCoverage: true
-    enabled: true
-```
-
-#### 4. Security Scanning
-
-- Run first-party and third-party vulnerability scans
-- Consider setting `continueOnError: true` for security scans to avoid blocking the pipeline
-- Review security findings as part of your regular process
-
-```yaml
-- template: .azuredevops/v1/templates/composite/python/scanning_1st_vulnerabilities.yaml
-  parameters:
-    pythonSrcDirectory: $(Build.SourcesDirectory)
-    continueOnError: true
-    enabled: true
-
-- template: .azuredevops/v1/templates/composite/python/scanning_3rd_vulnerabilities.yaml
-  parameters:
-    pythonSrcDirectory: $(Build.SourcesDirectory)
-    continueOnError: true
-    enabled: true
-```
-
-### Pipeline Organization
-
-#### 1. Stage Organization
-
-Organize your pipeline into logical stages:
-
-```yaml
-stages:
-- stage: Build
-  displayName: 'Build and Validate'
-  jobs:
-  - job: Lint
-    # Linting tasks
-  
-- stage: Test
-  displayName: 'Test'
-  jobs:
-  - job: UnitTest
-    # Unit testing tasks
-  - job: IntegrationTest
-    # Integration testing tasks
-
-- stage: Security
-  displayName: 'Security Scanning'
-  jobs:
-  - job: CodeScan
-    # Code security scanning
-  - job: DependencyScan
-    # Dependency security scanning
-
-- stage: Publish
-  displayName: 'Publish Artifacts'
-  jobs:
-  - job: Package
-    # Package and publish tasks
-```
-
-#### 2. Variable Management
-
-- Use variable groups for environment-specific configuration
-- Use pipeline variables for configuration that is specific to a pipeline
-- Use template parameters for configuration that varies between template usages
-
-```yaml
-variables:
-- group: python-project-variables
-
-- name: pythonVersion
-  value: '3.11'
-```
-
-## Versioning Strategy
-
-### Current Versions
-
-- **v1**: Current stable version of all templates
-- **v2**: Next generation templates (under development)
-
-### Version History
-
-#### v1 (Current Stable)
-
-The v1 templates provide a comprehensive set of pipeline templates for building, testing, and analyzing Python projects.
-
-Key features:
-- Two-level template hierarchy (atomic/composite)
-- Support for Poetry dependency management
-- Comprehensive test, lint, and security scanning
-- Integration with Azure DevOps pipelines
-
-#### v2 (In Development)
-
-The v2 templates are a work in progress and will introduce the following improvements:
-
-Planned features:
-- Simplified parameter naming
-- Better cross-platform support
-- Container-based execution for consistent environments
-- Improved template discoverability
-- Enhanced documentation
-- Support for additional Python package managers
-
-### Transition Strategy
-
-#### Using v1 Templates
-
-All v1 templates are stable and can be used in production pipelines. To use v1 templates:
-
-```yaml
-# azure-pipelines.yaml
-extends:
-  template: .azuredevops/v1/pipelines/python.yaml
-  parameters:
-    projectName: 'your-project-name'
-```
